@@ -105,12 +105,13 @@ export default function Transfer() {
   const addRecipientAmount = (recipient: `0x${string}`, amount: string) => {
     const payment = payments.find(payment => payment.recipient.toLowerCase() === recipient.toLowerCase());
 
+    if (!payment) return;
     // add the difference between the old and new amount
-    const totalValue = ((Number(totalNativeValue) || 0) + Number(amount) - Number(payment?.amount)).toString();
+    const newTotal = (parseEther(totalNativeValue) || 0n) + parseEther(amount) - parseEther(payment.amount);
 
-    setTotalNativeValue(totalValue);
+    setTotalNativeValue(formatEther(newTotal));
     if (nativeCurrencyPrice) {
-      setTotalDollarValue((parseFloat(totalValue) * nativeCurrencyPrice).toFixed(2));
+      setTotalDollarValue((parseFloat(formatEther(newTotal)) * nativeCurrencyPrice).toFixed(2));
     }
     // update amount
     setPayments(prevPayments =>
@@ -120,29 +121,37 @@ export default function Transfer() {
     );
   };
 
+  const sumPayments = (): bigint => payments.reduce((sum, p) => sum + (parseEther(p.amount) || -1n), 0n);
+
   const isSharedEqually = (): boolean =>
-    totalNativeValue === "" ||
-    payments.length === 0 ||
-    Number(totalNativeValue) === payments.reduce((sum, p) => sum + Number(p.amount || -1), 0);
+    totalNativeValue === "" || payments.length === 0 || parseEther(totalNativeValue) === sumPayments();
 
   const shareEqually = () => {
     if (payments.length === 0 || Number(totalNativeValue) === 0 || isSharedEqually()) return;
 
-    const shareAmount = Number(totalNativeValue) / payments.length; // Fixed to 6 decimals for precision
+    const total = parseEther(totalNativeValue);
+    const share = total / BigInt(payments.length);
 
     setPayments(prevPayments =>
       prevPayments.map(payment => ({
         ...payment,
-        amount: shareAmount.toString(),
+        amount: formatEther(share),
       })),
     );
 
-    const newTotalNativeValue = shareAmount * payments.length;
+    const newTotal = share * BigInt(payments.length);
 
-    setTotalNativeValue(newTotalNativeValue.toString());
+    setTotalNativeValue(formatEther(newTotal));
 
     if (nativeCurrencyPrice) {
-      setTotalDollarValue((Number(newTotalNativeValue) * nativeCurrencyPrice).toFixed(2));
+      setTotalDollarValue((Number(formatEther(newTotal)) * nativeCurrencyPrice).toFixed(2));
+    }
+
+    if (total !== newTotal) {
+      toaster.create({
+        title: "Total amount has been adjusted for precision",
+        type: "warning",
+      });
     }
   };
 
@@ -205,7 +214,7 @@ export default function Transfer() {
             address: dispas.address,
             functionName: "distributeFunds",
             args: [_payments],
-            value: parseEther(totalNativeValue),
+            value: sumPayments(),
           });
       }
 

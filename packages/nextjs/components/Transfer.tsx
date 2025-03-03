@@ -161,6 +161,13 @@ export default function Transfer() {
   const writeTx = useTransactor();
 
   const send = async () => {
+    if (!account.isConnected) {
+      toaster.create({
+        title: "Please connect your wallet",
+        type: "info",
+      });
+      return;
+    }
     if (totalNativeValue === "" || Number(totalNativeValue) === 0) {
       toaster.create({
         title: "Please input a valid total amount!",
@@ -219,6 +226,8 @@ export default function Transfer() {
       }
 
       const txHash = await writeTx(tx);
+
+      if (!txHash) throw new Error("Transfer failed!");
 
       console.log("Transaction Hash: ", txHash);
 

@@ -3,6 +3,7 @@ import Image from "next/image";
 import Profile from "./Profile";
 import { toaster } from "./ui/toaster";
 import { Button, Input } from "@chakra-ui/react";
+import { GrStatusGood } from "react-icons/gr";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 
 export interface PaymentType {
@@ -56,17 +57,21 @@ export default function Payment({
     }
   };
 
+  const updateAmount = () => {
+    if (!nativeValue || Number(nativeValue) === 0) {
+      toaster.create({
+        title: "Please input an amount",
+        type: "warning",
+      });
+      return;
+    }
+    onChange(payment.recipient, nativeValue);
+    setShowInput(false);
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      if (!nativeValue || Number(nativeValue) === 0) {
-        toaster.create({
-          title: "Please input an amount",
-          type: "warning",
-        });
-        return;
-      }
-      onChange(payment.recipient, nativeValue);
-      setShowInput(false);
+      updateAmount();
     }
   };
 
@@ -136,6 +141,9 @@ export default function Payment({
               onKeyPress={handleKeyPress}
               required
             />
+            <Button onClick={updateAmount} className="transition-transform duration-200 ease-in-out hover:scale-110">
+              <GrStatusGood className="w-4 aspect-square text-green-500 transition-transform duration-200 ease-in-out hover:scale-110" />
+            </Button>
           </div>
 
           <strong

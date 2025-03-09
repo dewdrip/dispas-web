@@ -262,12 +262,13 @@ export default function Transfer() {
         <div className="flex justify-center items-center text-3xl w-full max-w-[90%] overflow-hidden text-ellipsis text-black whitespace-nowrap">
           {isDollar && totalNativeValue && <span className="text-2xl mr-[-5px]">$</span>}
           <Input
-            placeholder="0"
+            placeholder="How much?"
             className="h-16 text-center outline-none"
             value={displayTotalValue}
             onChange={e => handleInput(e.target.value)}
             required
             width={`${Math.max(displayTotalValue.length, 1)}ch`}
+            style={{ minWidth: displayTotalValue.length === 0 ? 200 : 0 }}
           />
           {!isDollar && totalNativeValue && <span className="text-2xl">LYX</span>}
         </div>

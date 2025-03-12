@@ -97,6 +97,17 @@ export default function Transfer() {
   };
 
   const removePayment = (recipient: `0x${string}`) => {
+    const payment = payments.find(payment => payment.recipient.toLowerCase() === recipient.toLowerCase());
+
+    if (!payment) return;
+    // add the difference between the old and new amount
+    const newTotal = parseEther(totalNativeValue) - parseEther(payment.amount);
+
+    setTotalNativeValue(formatEther(newTotal));
+    if (nativeCurrencyPrice) {
+      setTotalDollarValue((parseFloat(formatEther(newTotal)) * nativeCurrencyPrice).toFixed(2));
+    }
+
     setPayments(prevPayments =>
       prevPayments.filter(payment => payment.recipient.toLowerCase() !== recipient.toLowerCase()),
     );

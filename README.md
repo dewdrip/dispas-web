@@ -21,8 +21,8 @@ To get started with Dispas, follow the steps below:
 1. Clone repo and install dependencies:
 
 ```
-git clone https://github.com/ValentineCodes/dispas.git
-cd dispas
+git clone https://github.com/dewdrip/dispas-web.git
+cd dispas-web
 yarn install
 ```
 

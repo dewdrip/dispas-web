@@ -1,6 +1,6 @@
 # [🤑 Dispas](https://dispas.vercel.app)
 
-**Fancy a quick demo? 👉 https://youtu.be/k9jMEKzbl18**
+**Fancy a quick demo? 👉 https://youtu.be/3-H7Bsy21SU**
 
 ### Manage payroll, allowances, donations, e.t.c more easily by distributing funds in ONE transaction
 

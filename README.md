@@ -2,7 +2,7 @@
 
 **Fancy a quick demo? 👉 https://youtu.be/3-H7Bsy21SU**
 
-### Manage payroll, allowances, donations, e.t.c more easily by distributing funds in ONE transaction
+### Disburse Funds in ONE transaction
 
 ![Dispas](https://valentinecodes.github.io/dispas/assets/dispas.png)
 

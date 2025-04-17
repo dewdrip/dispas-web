@@ -32,7 +32,6 @@ export default function Payment({
   change,
   onGiftChange,
 }: Props) {
-  const [showInput, setShowInput] = useState(true);
   const [nativeValue, setNativeValue] = useState(payment.amount);
   const [dollarValue, setDollarValue] = useState("");
   const [isDollar, setIsDollar] = useState(false);
@@ -41,6 +40,7 @@ export default function Payment({
     if (input.trim() == "") {
       setNativeValue("");
       setDollarValue("");
+      onChange(payment.recipient, "");
       return;
     }
     // Ensure only valid floating numbers are parsed
@@ -49,34 +49,23 @@ export default function Payment({
 
     if (!nativeCurrencyPrice) {
       setNativeValue(numericValue);
+      onChange(payment.recipient, numericValue);
       return;
     }
 
+    let nativeValue;
     if (isDollar) {
       setDollarValue(numericValue);
-      setNativeValue((parseFloat(numericValue) / nativeCurrencyPrice).toString());
+
+      nativeValue = (parseFloat(numericValue) / nativeCurrencyPrice).toString();
+      setNativeValue(nativeValue);
     } else {
+      nativeValue = numericValue;
       setNativeValue(numericValue);
       setDollarValue((parseFloat(numericValue) * nativeCurrencyPrice).toFixed(2));
     }
-  };
 
-  const updateAmount = () => {
-    if (!nativeValue || Number(nativeValue) === 0) {
-      toaster.create({
-        title: "Please input an amount",
-        type: "warning",
-      });
-      return;
-    }
     onChange(payment.recipient, nativeValue);
-    setShowInput(false);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      updateAmount();
-    }
   };
 
   const switchCurrency = () => {
@@ -117,7 +106,6 @@ export default function Payment({
 
   useEffect(() => {
     if (payment.amount !== "") {
-      setShowInput(false);
       setNativeValue(payment.amount);
 
       if (!nativeCurrencyPrice) return;
@@ -133,41 +121,28 @@ export default function Payment({
       />
       <Profile address={payment.recipient} showName />
 
-      {showInput ? (
-        <div className="flex flex-col items-center">
-          <div className="flex items-center border border-gray-200 bg-white rounded-lg">
-            {currencyToggle}
-            <Input
-              placeholder="0"
-              className="h-8 w-24 outline-none text-black"
-              value={displayValue}
-              onChange={e => handleInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              required
-            />
-            <Button onClick={updateAmount} className="transition-transform duration-200 ease-in-out hover:scale-110">
-              <GrStatusGood className="w-4 aspect-square text-green-500 transition-transform duration-200 ease-in-out hover:scale-110" />
-            </Button>
-          </div>
-
-          <strong
-            className="text-xs text-center font-semibold italic text-gray-500 max-w-[100px]"
-            style={{
-              opacity: nativeValue && dollarValue ? 1 : 0,
-            }}
-          >
-            ~{!isDollar && "$"}
-            {displayConversion} {isDollar && "LYX"}
-          </strong>
+      <div className="flex flex-col items-center">
+        <div className="flex items-center border border-gray-200 bg-white rounded-lg">
+          {currencyToggle}
+          <Input
+            placeholder="0"
+            className="h-8 w-24 outline-none text-black"
+            value={displayValue}
+            onChange={e => handleInput(e.target.value)}
+            required
+          />
         </div>
-      ) : (
-        <span
-          className="text-sm text-black hover:text-purple-400 hover:font-bold duration-200 text-center cursor-pointer max-w-[100px]"
-          onClick={() => setShowInput(true)}
+
+        <strong
+          className="text-xs text-center font-semibold italic text-gray-500 max-w-[100px]"
+          style={{
+            opacity: nativeValue && dollarValue ? 1 : 0,
+          }}
         >
-          {payment.amount} LYX
-        </span>
-      )}
+          ~{!isDollar && "$"}
+          {displayConversion} {isDollar && "LYX"}
+        </strong>
+      </div>
 
       {change && Number(change) > 0 && onGiftChange && (
         <button

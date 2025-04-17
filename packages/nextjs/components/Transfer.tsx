@@ -121,7 +121,12 @@ export default function Transfer() {
     // add the difference between the old and new amount
     const newTotal = (parseEther(totalNativeValue) || 0n) + parseEther(amount) - parseEther(payment.amount);
 
-    setTotalNativeValue(formatEther(newTotal));
+    if (newTotal === 0n) {
+      setTotalNativeValue("");
+    } else {
+      setTotalNativeValue(formatEther(newTotal));
+    }
+
     if (nativeCurrencyPrice) {
       setTotalDollarValue((parseFloat(formatEther(newTotal)) * nativeCurrencyPrice).toFixed(2));
     }

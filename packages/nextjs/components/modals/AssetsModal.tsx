@@ -7,9 +7,7 @@ import { formatEther } from "viem";
 import { useAccount } from "wagmi";
 import { useWatchBalance } from "~~/hooks/scaffold-eth";
 
-type Props = {};
-
-export default function AssetsModal({}: Props) {
+export default function AssetsModal() {
   const account = useAccount();
   const { data: balance } = useWatchBalance({ address: account.address });
   return (

@@ -3,7 +3,7 @@ import Image from "next/image";
 import Payment, { PaymentType } from "./Payment";
 import Profile from "./Profile";
 import ProfilePlaceholder from "./ProfilePlaceholder";
-import { ProfileSearch } from "./ProfileSearch";
+import { ProfileInput } from "./ProfileInput";
 import AssetsModal from "./modals/AssetsModal";
 import { Button, Input } from "@chakra-ui/react";
 import { FaChevronDown, FaDollarSign } from "react-icons/fa";
@@ -394,7 +394,7 @@ export default function Transfer() {
           )}
         </div>
 
-        <ProfileSearch onSelectAddress={handleRecipientSelection} />
+        <ProfileInput onSelectAddress={handleRecipientSelection} />
 
         <button
           onClick={send}

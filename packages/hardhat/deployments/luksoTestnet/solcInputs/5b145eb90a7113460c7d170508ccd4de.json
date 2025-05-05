@@ -1,0 +1,42 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/interfaces/IDispas.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.28;\n\nimport { DataTypes } from \"../protocol/libraries/DataTypes.sol\";\n\n/**\n * @title IDispas - Interface for LYX Distribution Contract\n * @author Valentine Orga\n * @notice Defines the interface for Dispas, a contract that allows LYX distribution to multiple addresses.\n */\ninterface IDispas {\n    /// @notice Emitted when LYX is successfully distributed to multiple recipients.\n    /// @param sender The address that initiated the distribution.\n    /// @param totalAmount The total LYX amount distributed.\n    event FundsDistributed(address indexed sender, uint256 totalAmount);\n\n    /// @notice Emitted when a single recipient successfully receives LYX.\n    /// @param recipient The address that received the payment.\n    /// @param amount The amount of LYX sent.\n    event PaymentSent(address indexed recipient, uint256 amount);\n\n    /**\n     * @notice Distributes LYX to multiple recipients.\n     * @dev Requires that each recipient is a valid address and receives a non-zero amount.\n     *      The total distributed amount must match `msg.value`.\n     * @param payments An array of `Payment` structs containing recipient addresses and corresponding amounts.\n     */\n    function distributeFunds(DataTypes.Payment[] calldata payments) external payable;\n}\n"
+    },
+    "contracts/protocol/Dispas.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.28;\n\nimport { IDispas } from \"../interfaces/IDispas.sol\";\nimport { DataTypes } from \"./libraries/DataTypes.sol\";\n\n/**\n * @title Dispas - A Gas-Efficient LYX Distributor\n * @author Valentine Orga\n * @notice This contract allows users to split LYX payments among multiple recipients.\n * @dev Uses a single loop for efficiency, calldata structs to minimize gas, and robust error handling.\n */\ncontract Dispas is IDispas {\n    // ==========================\n    // Errors\n    // ==========================\n    error Dispas__ZeroAddress();\n    error Dispas__ZeroAmount();\n    error Dispas__InsufficientValue();\n    error Dispas__TransferFailed(address recipient, uint256 amount);\n\n    // ==========================\n    // Functions\n    // ==========================\n\n    /// @inheritdoc IDispas\n    function distributeFunds(DataTypes.Payment[] calldata payments) external payable {\n        uint256 distributedAmount = 0;\n        uint256 paymentsLength = payments.length;\n\n        for (uint256 i = 0; i < paymentsLength; i++) {\n            DataTypes.Payment calldata payment = payments[i];\n\n            // validate input\n            require(payment.recipient != address(0), Dispas__ZeroAddress());\n            require(payment.amount != 0, Dispas__ZeroAmount());\n\n            // track total distribution\n            distributedAmount += payment.amount;\n\n            // ensure distributed amount does not exceed the full msg.value\n            if (distributedAmount > msg.value) revert Dispas__InsufficientValue();\n\n            // attempt transfer\n            (bool success, ) = payment.recipient.call{ value: payment.amount }(\"\");\n            require(success, Dispas__TransferFailed(payment.recipient, payment.amount));\n        }\n\n        // emit event for overall distribution\n        emit FundsDistributed(msg.sender, msg.value);\n    }\n\n    /// @dev Fallback function to prevent accidental LYX deposits.\n    receive() external payable {\n        revert(\"Direct deposits not allowed\");\n    }\n}\n"
+    },
+    "contracts/protocol/libraries/DataTypes.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.28;\n\n/**\n * @title DataTypes Library\n * @author\n * @notice Defines common data structures used in the Dispas contract.\n * @dev This library is used to standardize data structures across the contract.\n */\nlibrary DataTypes {\n    /**\n     * @notice Represents a payment entry in the distribution process.\n     * @dev Used in the `distributeFunds` function to store recipient details.\n     * @param recipient The address receiving the payment.\n     * @param amount The amount of LYX to be sent.\n     */\n    struct Payment {\n        address recipient;\n        uint256 amount;\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

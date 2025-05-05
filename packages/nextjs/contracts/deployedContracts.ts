@@ -113,9 +113,9 @@ const deployedContracts = {
       },
     },
   },
-  31337: {
+  4201: {
     Dispas: {
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      address: "0x8feB3A0810F2B6EC9D30726054747C06ACFB756A",
       abi: [
         {
           inputs: [],

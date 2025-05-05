@@ -6,6 +6,98 @@
 
 ![Dispas](https://valentinecodes.github.io/dispas/assets/dispas.png)
 
+## Architecture
+
+Dispas follows a modern web3 architecture with the following components:
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│  Next.js Front  │◄────┤  Smart Contract │◄────┤  Local/Test     │
+│  End            │     │  Layer          │     │  Network        │
+│                 │     │                 │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+        │                        │                        │
+        │                        │                        │
+        ▼                        ▼                        ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│                 │     │                 │     │                 │
+│  User Interface │     │  Fund Disbursal │     │  Lukso       │
+│  Components     │     │  Logic          │     │  Blockchain     │
+│                 │     │                 │     │                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### Key Components:
+
+1. **Frontend (Next.js)**
+
+   - User interface components
+   - Web3 integration
+   - Transaction handling
+   - State management
+
+2. **Smart Contract Layer**
+
+   - Fund disbursal logic
+   - Transaction validation
+   - Security checks
+   - Event emission
+
+3. **Blockchain Network**
+   - Local development network (Hardhat)
+   - Test network support
+   - Mainnet integration
+
+## Funds Disbursal Flow
+
+The following diagram illustrates how funds are disbursed in a single transaction:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│             │     │             │     │             │     │             │
+│   User      │────►│  Smart      │────►│  Batch      │────►│  Recipients │
+│  Interface  │     │  Contract   │     │  Processing │     │  Receive    │
+│             │     │             │     │             │     │  Funds      │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+       │                   │                   │                   │
+       │                   │                   │                   │
+       ▼                   ▼                   ▼                   ▼
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  Input      │     │  Validate   │     │  Execute    │     │  Transaction│
+│  Recipients │     │  Amounts    │     │  Batch      │     │  Confirmed  │
+│  & Amounts  │     │  & Addresses│     │  Transfer   │     │  & Complete │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+### Funds Disbursal Process Steps:
+
+1. **User Input**
+
+   - Enter recipient addresses
+   - Specify amounts for each recipient or split total amount
+   - Review total transaction cost
+
+2. **Smart Contract Validation**
+
+   - Verify sender's balance
+   - Validate recipient addresses
+   - Check for duplicate addresses
+   - Ensure amounts are within limits
+
+3. **Batch Processing**
+
+   - Aggregate all transfers
+   - Calculate total amount
+   - Prepare single transaction
+   - Optimize gas usage
+
+4. **Transaction Execution**
+   - Submit to Lukso network
+   - Process all transfers atomically
+   - Emit events for tracking
+   - Confirm successful completion
+
 ## Local Development
 
 Before you begin, you need to install the following tools:
@@ -32,7 +124,7 @@ yarn install
 yarn chain
 ```
 
-This command starts a local Ethereum network using Hardhat. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/hardhat/hardhat.config.ts`.
+This command starts a local Lukso network using Hardhat. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/hardhat/hardhat.config.ts`.
 
 3. On a second terminal, deploy the test contract:
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { BlockieAvatar } from "./scaffold-eth";
 import { ERC725, ERC725JSONSchema } from "@erc725/erc725.js";
 import lsp3ProfileSchema from "@erc725/erc725.js/schemas/LSP3ProfileMetadata.json";
+import { useAccount } from "wagmi";
 import { Profile as ProfileType, luksoNetworks } from "~~/contexts/UniversalProfileContext";
 import { getFirst4Hex, truncateAddress } from "~~/utils/helpers";
 import { getAddressColor } from "~~/utils/scaffold-eth/getAddressColor";
@@ -16,10 +17,12 @@ type Props = {
 export default function SearchProfile({ address, onSelect }: Props) {
   const [profile, setProfile] = useState<ProfileType | null>(null);
 
+  const account = useAccount();
+
   useEffect(() => {
     (async () => {
       try {
-        const network = luksoNetworks[0];
+        const network = account.chainId === luksoNetworks[0].chainId ? luksoNetworks[0] : luksoNetworks[1];
 
         // Instanciate the LSP3-based smart contract
         const erc725js = new ERC725(lsp3ProfileSchema as ERC725JSONSchema[], address, network.rpcUrl, {

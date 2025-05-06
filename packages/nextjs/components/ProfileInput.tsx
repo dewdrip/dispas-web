@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SearchProfile from "./SearchProfile";
 import { InputGroup } from "./ui/input-group";
 import { toaster } from "./ui/toaster";
@@ -9,6 +9,7 @@ import { gql, request } from "graphql-request";
 import { CiSearch } from "react-icons/ci";
 import { useDebounceValue } from "usehooks-ts";
 import { isAddress } from "viem";
+import { useAccount } from "wagmi";
 
 /**
  * ProfileInput Component
@@ -27,6 +28,7 @@ import { isAddress } from "viem";
  * @param {(address: `0x${string}`) => void} props.onSelectAddress - Callback function triggered when a profile is selected
  */
 
+const ENVIO_TESTNET_URL = "https://envio.lukso-testnet.universal.tech/v1/graphql";
 const ENVIO_MAINNET_URL = "https://envio.lukso-mainnet.universal.tech/v1/graphql";
 
 const gqlQuery = gql`
@@ -63,10 +65,13 @@ type SearchProps = {
 
 export function ProfileInput({ onSelectAddress }: SearchProps) {
   const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useDebounceValue("", 200);
+  const [debouncedQuery, setDebouncedQuery] = useDebounceValue("", 500);
   const [results, setResults] = useState<Profile[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const account = useAccount();
 
   const handleSearch = async () => {
     if (debouncedQuery === "" || query === "") {
@@ -74,16 +79,32 @@ export function ProfileInput({ onSelectAddress }: SearchProps) {
       return;
     }
 
+    // Cancel any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+
     setIsSearching(true);
     try {
-      const envioUrl = ENVIO_MAINNET_URL;
-      const { search_profiles: data } = (await request(envioUrl, gqlQuery, { id: debouncedQuery })) as {
+      const envioUrl = account.chainId === 4201 ? ENVIO_TESTNET_URL : ENVIO_MAINNET_URL;
+      const { search_profiles: data } = (await request({
+        url: envioUrl,
+        document: gqlQuery,
+        variables: { id: debouncedQuery },
+        signal: abortControllerRef.current.signal,
+      })) as {
         search_profiles: Profile[];
       };
       setResults(data);
-    } catch (error) {
-      console.error("Search error:", error);
-      setResults([]);
+    } catch (error: any) {
+      // Only set results to empty if it's not an abort error
+      if (error.name !== "AbortError") {
+        console.error("Search error:", error);
+        setResults([]);
+      }
     } finally {
       setIsSearching(false);
     }

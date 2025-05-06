@@ -4,8 +4,9 @@ import Link from "next/link";
 import { BlockieAvatar } from "./scaffold-eth";
 import { ERC725, ERC725JSONSchema } from "@erc725/erc725.js";
 import lsp3ProfileSchema from "@erc725/erc725.js/schemas/LSP3ProfileMetadata.json";
+import { useAccount } from "wagmi";
 import { Profile as ProfileType, luksoNetworks } from "~~/contexts/UniversalProfileContext";
-import { getFirst4Hex, truncateAddress } from "~~/utils/helpers";
+import { getFirst4Hex, truncateAddress, truncateString } from "~~/utils/helpers";
 import { getAddressColor } from "~~/utils/scaffold-eth/getAddressColor";
 
 type Props = {
@@ -16,10 +17,12 @@ type Props = {
 export default function RecipientProfile({ address, showName }: Props) {
   const [profile, setProfile] = useState<ProfileType | null>(null);
 
+  const account = useAccount();
+
   useEffect(() => {
     (async () => {
       try {
-        const network = luksoNetworks[0];
+        const network = account.chainId === luksoNetworks[0].chainId ? luksoNetworks[0] : luksoNetworks[1];
 
         // Instanciate the LSP3-based smart contract
         const erc725js = new ERC725(lsp3ProfileSchema as ERC725JSONSchema[], address, network.rpcUrl, {
@@ -66,7 +69,7 @@ export default function RecipientProfile({ address, showName }: Props) {
 
       {showName && (
         <strong className="text-xs mt-1 text-center text-black font-bold w-32 lowercase">
-          {profile ? `@${profile.name}` : truncateAddress(address)}
+          {profile ? `@${truncateString(profile.name, 9)}` : truncateAddress(address)}
           {profile && <span className="text-purple-400 whitespace-nowrap">#{getFirst4Hex(address)}</span>}
         </strong>
       )}

@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
+import { Toaster } from "react-hot-toast";
 import { WagmiProvider } from "wagmi";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
 import { Provider as ChakraProvider } from "~~/components/ui/provider";
@@ -20,7 +21,10 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang="en">
       <body className={font.className}>
-        <ChakraProvider>{children}</ChakraProvider>
+        <ChakraProvider>
+          {children}
+          <Toaster />
+        </ChakraProvider>
       </body>
     </html>
   );

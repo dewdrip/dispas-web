@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import SearchProfile from "./SearchProfile";
 import { InputGroup } from "./ui/input-group";
-import { toaster } from "./ui/toaster";
 import { Input } from "@chakra-ui/react";
 import { gql, request } from "graphql-request";
 import { CiSearch } from "react-icons/ci";
 import { useDebounceValue } from "usehooks-ts";
 import { isAddress } from "viem";
 import { useAccount } from "wagmi";
+import { notification } from "~~/utils/scaffold-eth";
 
 /**
  * ProfileInput Component
@@ -112,10 +112,7 @@ export function ProfileInput({ onSelectAddress }: SearchProps) {
 
   const handleSelectProfile = (address: `0x${string}`) => {
     if (!isAddress(address)) {
-      toaster.create({
-        title: "Invalid address",
-        type: "error",
-      });
+      notification.error("Invalid address");
       return;
     }
 

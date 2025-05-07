@@ -10,9 +10,9 @@ import { FaChevronDown, FaDollarSign } from "react-icons/fa";
 import { formatEther, parseEther } from "viem";
 import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
 import { DialogContent, DialogRoot, DialogTrigger } from "~~/components/ui/dialog";
-import { Toaster, toaster } from "~~/components/ui/toaster";
 import { useDeployedContractInfo, useTransactor, useWatchBalance } from "~~/hooks/scaffold-eth";
 import { useCryptoPrice } from "~~/hooks/scaffold-eth/useCryptoPrice";
+import { notification } from "~~/utils/scaffold-eth";
 
 export default function Transfer() {
   const [totalNativeValue, setTotalNativeValue] = useState("");
@@ -37,10 +37,11 @@ export default function Transfer() {
 
   const switchCurrency = () => {
     if (!nativeCurrencyPrice) {
-      toaster.create({
-        title: "Loading exchange rate",
-        type: "warning",
-      });
+      const notificationId = notification.loading("Loading exchange rate");
+
+      setTimeout(() => {
+        notification.remove(notificationId);
+      }, 3000);
 
       if (!isFetchingNativeCurrency) {
         fetchNativeCurrency();
@@ -85,10 +86,7 @@ export default function Transfer() {
   const handleRecipientSelection = (recipient: `0x${string}`): boolean => {
     // Check if the recipient is already in the list
     if (payments.some(payment => payment.recipient.toLowerCase() === recipient.toLowerCase())) {
-      toaster.create({
-        title: "Recipient already added",
-        type: "error",
-      });
+      notification.error("Recipient already added");
       return false;
     }
 
@@ -167,16 +165,10 @@ export default function Transfer() {
       setTotalDollarValue((Number(formatEther(newTotal)) * nativeCurrencyPrice).toFixed(2));
     }
 
-    toaster.create({
-      title: "Your funds have been split equally between recipients",
-      type: "info",
-    });
+    notification.info("Your funds have been split equally between recipients");
 
     if (changeAmount > 0n) {
-      toaster.create({
-        title: `You've got ${changeAmount} WEI in change. You can gift it to someone`,
-        type: "warning",
-      });
+      notification.warning(`You've got ${changeAmount} WEI in change. You can gift it to someone`);
     }
   };
 
@@ -197,44 +189,29 @@ export default function Transfer() {
 
   const send = async () => {
     if (!account.isConnected) {
-      toaster.create({
-        title: "Please connect your wallet",
-        type: "info",
-      });
+      notification.info("Please connect your wallet");
       return;
     }
     if (totalNativeValue === "" || Number(totalNativeValue) === 0) {
-      toaster.create({
-        title: "Please input a valid total amount!",
-        type: "error",
-      });
+      notification.error("Please input a valid total amount!");
       return;
     }
 
     if (!balance || balance.value < parseEther(totalNativeValue)) {
-      toaster.create({
-        title: "Insufficient balance",
-        type: "error",
-      });
+      notification.error("Insufficient balance");
       return;
     }
 
     // Ensure all payments have valid amounts
     const hasInvalidPayment = payments.some(payment => !payment.amount || Number(payment.amount) <= 0);
     if (hasInvalidPayment) {
-      toaster.create({
-        title: "All recipients must have a valid amount greater than zero!",
-        type: "error",
-      });
+      notification.error("All recipients must have a valid amount greater than zero!");
       return;
     }
 
     // Ensure total of payments matches the inputted amount
     if (!isSplit()) {
-      toaster.create({
-        title: "Total amount does not match sum of payments!",
-        type: "error",
-      });
+      notification.error("Total amount does not match sum of payments!");
       return;
     }
 
@@ -252,10 +229,7 @@ export default function Transfer() {
           });
       } else {
         if (!dispas) {
-          toaster.create({
-            title: "Loading resources...",
-            type: "error",
-          });
+          notification.error("Loading resources...");
           return;
         }
         tx = () =>
@@ -274,20 +248,14 @@ export default function Transfer() {
 
       console.log("Transaction Hash: ", txHash);
 
-      toaster.create({
-        title: "Transfer successful! 🚀",
-        type: "success",
-      });
+      notification.success("Transfer successful! 🚀");
 
       setTotalNativeValue("");
       setTotalDollarValue("");
       setPayments([]);
     } catch (error) {
       console.error("Failed to send: ", error);
-      toaster.create({
-        title: "Transfer failed. Check logs to see more details!",
-        type: "error",
-      });
+      notification.error("Transfer failed. Check logs to see more details!");
     } finally {
       setIsSending(false);
     }
@@ -408,8 +376,6 @@ export default function Transfer() {
           )}
         </button>
       </div>
-
-      <Toaster />
     </div>
   );
 }

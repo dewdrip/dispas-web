@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import RecipientProfile from "./RecipientProfile";
-import { toaster } from "./ui/toaster";
 import { Button, Input } from "@chakra-ui/react";
 import { IoIosCloseCircleOutline } from "react-icons/io";
 import { parseEther } from "viem";
+import { notification } from "~~/utils/scaffold-eth";
 
 export interface PaymentType {
   recipient: `0x${string}`;
@@ -70,10 +70,11 @@ export default function Payment({
 
   const switchCurrency = () => {
     if (!nativeCurrencyPrice) {
-      toaster.create({
-        title: "Loading exchange rate",
-        type: "warning",
-      });
+      const notificationId = notification.loading("Loading exchange rate");
+
+      setTimeout(() => {
+        notification.remove(notificationId);
+      }, 3000);
 
       if (!isFetchingNativeCurrency) {
         fetchNativeCurrency();
